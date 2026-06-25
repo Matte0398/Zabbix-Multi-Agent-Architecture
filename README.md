@@ -57,10 +57,8 @@ Example:
 | Passive listening port | `10050` | `10056` or another custom port |
 | Zabbix Server/Proxy port | `10051` | `10051` |
 | Linux service | `zabbix-agent` / `zabbix-agent2` | `zabbix_agentd_custom` / `zabbix_agent2_custom` |
-| Log file | default path | custom path |
-| PID file | default path | custom path |
-
-> If your environment already defines a standard custom port, for example `10150`, use that port instead of `10056`.
+| Log file | `/var/log/zabbix/` | `/opt/zabbix_custom/var/log/zabbix/` |
+| PID file | `/var/run/zabbix/` | `/opt/zabbix_custom/var/run/zabbix/` |
 
 ---
 
@@ -90,12 +88,6 @@ The second Agent must listen on a different port, for example:
 
 ```ini
 ListenPort=10056
-```
-
-or:
-
-```ini
-ListenPort=10150
 ```
 
 ---
@@ -206,7 +198,7 @@ chown -R zabbix:zabbix /opt/zabbix_custom
 
 ---
 
-## Linux scenario 1: second classic Zabbix Agent
+## Linux scenario 1: first agent & second agent with version 1
 
 Use this procedure if the second Agent is the classic `zabbix_agentd`.
 
@@ -238,19 +230,11 @@ Hostname=<HOSTNAME_VISIBLE_IN_ZABBIX>
 ListenPort=10056
 ```
 
-Optional UserParameters:
-
-```ini
-UserParameter=check.fs.ro,if [ $(grep -E "ext.?|xfs|btrfs|vfat|gfs2|ocfs2" /proc/mounts | grep "ro," | grep -v "rw," | grep -v sentinelone | wc -l) -eq 0 ]; then echo 0; else echo 1; fi
-UserParameter=check.args[*],echo "$1"
-UserParameter=service.active[*],systemctl is-active "$1"
-```
-
 > If Zabbix Proxy and Agent are in the same network, configure the real Proxy IP address in both `Server` and `ServerActive`.
 
 ---
 
-## Linux scenario 2: second Zabbix Agent 2
+## Linux scenario 2: first agent & second agent with version 2
 
 Use this procedure if the second Agent is `zabbix_agent2` and Agent 2 is already installed on the system.
 
@@ -289,23 +273,15 @@ PluginSocket=/opt/zabbix_custom/var/run/zabbix/zabbix_agent2_plugins.sock
 ControlSocket=/opt/zabbix_custom/var/run/zabbix/zabbix_agent2_control.sock
 ```
 
-Optional UserParameters:
-
-```ini
-UserParameter=check.fs.ro,if [ $(grep -E "ext.?|xfs|btrfs|vfat|gfs2|ocfs2" /proc/mounts | grep "ro," | grep -v "rw," | grep -v sentinelone | wc -l) -eq 0 ]; then echo 0; else echo 1; fi
-UserParameter=check.args[*],echo "$1"
-UserParameter=service.active[*],systemctl is-active "$1"
-```
-
 Important notes for Agent 2:
 
 - if you use an external `.conf` file under `/opt/zabbix_custom/etc/zabbix_agent2.d/`, remember that `Include`, `PluginSocket`, and `ControlSocket` must still be configured in the main `zabbix_agent2.conf` file;
-- default `Include`, `PluginSocket`, and `ControlSocket` values must be commented out or replaced;
+- default `Include`, `PluginSocket`, and `ControlSocket` values must be replaced;
 - the second Agent 2 must not use the same internal sockets as the first Agent 2.
 
 ---
 
-## Linux scenario 3: first classic Agent and second Agent 2
+## Linux scenario 3: first Agent with version 1 & second Agent with version 2
 
 Use this procedure when the first installed Agent is the classic `zabbix_agentd`, but the second Agent must be `zabbix_agent2`.
 
@@ -352,7 +328,7 @@ mv usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-postgresql /opt/zabbix_cus
 rm -rf etc/ usr/ var/
 ```
 
-If required, create a symbolic link for the plugin directory:
+Create a symbolic link for the plugin directory:
 
 ```bash
 ln -s /opt/zabbix_custom/sbin/zabbix-agent2-plugin /usr/sbin/zabbix-agent2-plugin
@@ -568,13 +544,6 @@ ServerActive=<ZABBIX_SERVER_OR_PROXY_IP>
 Hostname=<HOSTNAME_VISIBLE_IN_ZABBIX>
 
 ListenPort=10056
-```
-
-Optional examples of UserParameters on Windows:
-
-```ini
-UserParameter=check.args[*],echo $1
-UserParameter=service.state[*],powershell -NoProfile -ExecutionPolicy Bypass -Command "(Get-Service -Name '$1').Status"
 ```
 
 ### 3. Install the second Agent as a Windows service
@@ -824,7 +793,7 @@ Cause:
 
 Fix:
 
-- configure a different port for the second Agent, for example `10056` or `10150`.
+- configure a different port for the second Agent, for example `10056`.
 
 ---
 
@@ -930,29 +899,3 @@ Avoid insecure configurations such as:
 ```ini
 Server=0.0.0.0/0
 ```
-
----
-
-# References
-
-- Zabbix official documentation: Windows agent installation and multiple Agent instances.
-- Zabbix official documentation: Zabbix Agent and Zabbix Agent 2 configuration parameters.
-- Internal Linux procedure used as the base for this guide.
-
----
-
-# Final notes
-
-The key point when running two Zabbix Agents on the same machine is isolation.
-
-Each Agent instance must have its own:
-
-- configuration file;
-- listening port;
-- log file;
-- PID file;
-- service name;
-- Agent 2 sockets, when applicable;
-- hostname, especially for active checks.
-
-Once these elements are separated correctly, two Zabbix Agents can run on the same Linux or Windows host without conflicts.
