@@ -1,4 +1,4 @@
-# Zabbix Multi-Agent – Linux & Windows
+# Zabbix Multi-Agent Architecture – Linux & Windows
 
 Operational guide for configuring **two Zabbix Agent instances on the same machine**, in both **Linux** and **Windows** environments, while avoiding conflicts involving ports, configuration files, logs, PIDs, sockets, plugins, and services.
 
