@@ -8,8 +8,7 @@ The guide covers the main scenarios with:
 - **Zabbix Agent classic + Zabbix Agent 2**
 - **Zabbix Agent 2 + Zabbix Agent 2**
 
-> For the standard installation of the first Agent, refer to the document  
-> **“Zabbix – Setup Agent Unix-Linux-Windows”**.
+> For the standard installation of the first Agent, refer to the official documentation.
 
 ---
 
